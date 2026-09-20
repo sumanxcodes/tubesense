@@ -216,4 +216,34 @@ else:
         display_df['sentiment_confidence'] = display_df['sentiment_confidence'].apply(lambda x: f"{x*100:.1f}%" if pd.notnull(x) else "N/A")
         
         display_df.columns = ["Date", "Sentiment", "AI Confidence", "Assigned Topic", "Likes", "Clean Text"]
-        st.dataframe(display_df, use_container_width=True, height=400)
+        
+        event = st.dataframe(
+            display_df, 
+            use_container_width=True, 
+            height=400,
+            on_select="rerun",
+            selection_mode="single-row",
+            column_config={
+                "Clean Text": st.column_config.TextColumn(
+                    "Clean Text",
+                    width="large"
+                ),
+                "Assigned Topic": st.column_config.TextColumn(
+                    "Assigned Topic",
+                    width="medium"
+                )
+            }
+        )
+        
+        # Reading Pane for Full Comment
+        if event.selection.rows:
+            selected_idx = event.selection.rows[0]
+            selected_row = display_df.iloc[selected_idx]
+            st.markdown("### 💬 Selected Comment Details")
+            st.info(f"**Full Text:** {selected_row['Clean Text']}")
+            
+            c1, c2, c3, c4 = st.columns(4)
+            c1.caption(f"**Topic:** {selected_row['Assigned Topic']}")
+            c2.caption(f"**Sentiment:** {selected_row['Sentiment']} ({selected_row['AI Confidence']})")
+            c3.caption(f"**Likes:** {selected_row['Likes']}")
+            c4.caption(f"**Date:** {selected_row['Date']}")
