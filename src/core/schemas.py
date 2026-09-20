@@ -1,3 +1,4 @@
+from typing import Dict, List, Any
 from datetime import datetime
 from typing import Any
 
@@ -19,6 +20,7 @@ class CleanedComment(BaseModel):
     comment_id: str
     clean_text: str 
     is_valid_for_topic_modeling: bool 
+    published_at: datetime
 
 class SentimentOutput(BaseModel):
     comment_id: str
@@ -35,10 +37,18 @@ class EnrichedComment(BaseModel):
     clean_text: str
     sentiment_label: str
     topic_name: str
+    published_at: datetime
+
+class VideoMetadata(BaseModel):
+    title: str
+    channel_title: str
+    view_count: int
+    thumbnail_url: str
 
 class FinalResponse(BaseModel):
     video_id: str
+    metadata: VideoMetadata
     total_analyzed: int
-    sentiment_distribution: dict[str, Any]
-    topic_clusters: dict[str, Any]
-    enriched_comments: list[EnrichedComment]
+    sentiment_distribution: Dict[str, Any]
+    topic_clusters: Dict[str, Any]
+    enriched_comments: List[EnrichedComment]

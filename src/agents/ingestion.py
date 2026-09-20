@@ -1,11 +1,12 @@
 import os
 from datetime import datetime, timezone
+from typing import Tuple, Optional
 
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from src.core.schemas import RawComment
+from src.core.schemas import RawComment, VideoMetadata
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +17,35 @@ def get_youtube_client():
     if not api_key:
         raise ValueError("YOUTUBE_API_KEY environment variable is missing.")
     return build("youtube", "v3", developerKey=api_key)
+
+def run_video_metadata(video_id: str) -> VideoMetadata:
+    """Fetches video metadata (title, channel, views, thumbnail)."""
+    youtube = get_youtube_client()
+    try:
+        response = youtube.videos().list(
+            part="snippet,statistics",
+            id=video_id
+        ).execute()
+        
+        if not response.get("items"):
+            raise ValueError(f"Video {video_id} not found.")
+            
+        item = response["items"][0]
+        snippet = item["snippet"]
+        statistics = item["statistics"]
+        
+        # Get highest res thumbnail available
+        thumbnails = snippet.get("thumbnails", {})
+        thumbnail_url = thumbnails.get("maxres", thumbnails.get("high", thumbnails.get("default", {}))).get("url", "")
+        return VideoMetadata(
+            title=snippet.get("title", "Unknown Title"),
+            channel_title=snippet.get("channelTitle", "Unknown Channel"),
+            view_count=int(statistics.get("viewCount", 0)),
+            thumbnail_url=thumbnail_url
+        )
+    except HttpError as e:
+        print(f"An HTTP error occurred fetching metadata: {e}")
+        raise
 
 def run_ingestion(video_id: str, max_comments: int = 2000) -> list[RawComment]:
     """

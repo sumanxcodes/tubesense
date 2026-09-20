@@ -3,7 +3,7 @@ from collections import Counter
 
 from fastapi import FastAPI, HTTPException
 
-from src.agents.ingestion import run_ingestion
+from src.agents.ingestion import run_ingestion, run_video_metadata
 from src.agents.preprocessing import run_preprocessing
 from src.agents.sentiment import run_sentiment_analysis
 from src.agents.topic import run_topic_modeling
@@ -22,13 +22,11 @@ async def health_check():
 @app.post("/analyze", response_model=FinalResponse)
 async def analyze_video(request: VideoRequest):
     try:
-        # Agent 2: Ingestion
-        # Offload to thread since it makes synchronous HTTP requests
-        raw_comments = await asyncio.to_thread(
-            run_ingestion, 
-            request.video_id, 
-            request.max_comments
-        )
+        # Fetch metadata and comments concurrently
+        metadata_task = asyncio.to_thread(run_video_metadata, request.video_id)
+        ingestion_task = asyncio.to_thread(run_ingestion, request.video_id, request.max_comments)
+        
+        video_metadata, raw_comments = await asyncio.gather(metadata_task, ingestion_task)
         
         if not raw_comments:
             raise HTTPException(status_code=404, detail="No comments found or comments are disabled.")
@@ -68,7 +66,8 @@ async def analyze_video(request: VideoRequest):
                 comment_id=comment.comment_id,
                 clean_text=comment.clean_text,
                 sentiment_label=s_label,
-                topic_name=t_name
+                topic_name=t_name,
+                published_at=comment.published_at
             )
             enriched_comments.append(enriched)
             
@@ -79,6 +78,7 @@ async def analyze_video(request: VideoRequest):
         # Agent 1 Synthesis
         return FinalResponse(
             video_id=request.video_id,
+            metadata=video_metadata,
             total_analyzed=len(enriched_comments),
             sentiment_distribution=dict(sentiment_counter),
             topic_clusters=dict(topic_counter),
