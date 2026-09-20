@@ -1,3 +1,5 @@
+from sklearn.feature_extraction.text import CountVectorizer
+
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
 
@@ -46,8 +48,7 @@ def run_topic_modeling(comments: list[CleanedComment]) -> list[TopicOutput]:
     # all-MiniLM-L6-v2 is specifically requested in the PRD for speed & performance
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     
-    # Use CountVectorizer to remove common English stop words ("the", "and", "your")
-    from sklearn.feature_extraction.text import CountVectorizer
+    # Use CountVectorizer to remove common English stop words ("the", "your", "what")
     vectorizer_model = CountVectorizer(stop_words="english")
     
     topic_model = BERTopic(
