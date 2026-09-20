@@ -74,7 +74,30 @@ h1, h2, h3 {
     font-weight: 700 !important;
     letter-spacing: -0.5px !important;
 }
+
+/* Glassmorphism Sidebar */
+[data-testid="stSidebar"] {
+    background: rgba(20, 20, 25, 0.4) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Premium Metric Cards Update (More Glassy) */
+div[data-testid="metric-container"] {
+    background: rgba(30, 30, 35, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Base App background to allow glow */
+.stApp {
+    background-color: #0e1117;
+    transition: background 1s ease;
+}
 </style>
+
 ''', unsafe_allow_html=True)
 
 
@@ -86,9 +109,11 @@ def extract_video_id(url: str) -> str:
     match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
     return match.group(1) if match else None
 
+
 def render_empty_state():
     st.info("👈 Enter a YouTube URL in the sidebar to begin analysis!")
     st.image("https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", use_container_width=True, caption="Analyze your audience.")
+
 
 # Initialize session state for data persistence
 if "analysis_data" not in st.session_state:
@@ -181,8 +206,27 @@ else:
     else:
         like_weighted_pos_ratio = pos_ratio
 
+
+    # --- DYNAMIC THEMING ---
+    # Inject an ambient background glow based on sentiment
+    glow_color = "rgba(44, 160, 44, 0.15)" # Default Green
+    if pos_ratio < 40:
+        glow_color = "rgba(214, 39, 40, 0.15)" # Red
+    elif 40 <= pos_ratio <= 60:
+        glow_color = "rgba(127, 127, 127, 0.1)" # Neutral Grey
+        
+    dynamic_css = f'''
+    <style>
+    .stApp {{
+        background: radial-gradient(circle at 50% 0%, {glow_color} 0%, #0e1117 60%) !important;
+    }}
+    </style>
+    '''
+    st.markdown(dynamic_css, unsafe_allow_html=True)
+
     # Generate heuristic summary
     overall_vibe = "positive" if pos_ratio > 50 else ("negative" if sentiment_dict.get("Negative", 0) > pos_count else "mixed")
+
     weighted_vibe = "higher" if like_weighted_pos_ratio > pos_ratio else "lower"
     
     st.info(f"The overall sentiment of this video is **{overall_vibe}**, with **{pos_ratio:.1f}%** of comments being positive. "
@@ -234,99 +278,100 @@ else:
 
     st.divider()
     st.markdown("<h3><span class=\"m-icon\">analytics</span> Advanced Analytics</h3>", unsafe_allow_html=True)
-    tab1, tab2, tab3 = st.tabs(["Time Series", "Aspect-Based Sentiment", "Controversy & Engagement"])
+    with st.expander("🔍 Click to dive deeper into Aspect-Based Sentiment, Entity Radars, and Velocity Charts", expanded=False):
+        tab1, tab2, tab3 = st.tabs(["Time Series", "Aspect-Based Sentiment", "Controversy & Engagement"])
     
-    with tab1:
-        # --- CHARTS ROW 2 (Time Series) ---
-        if not cdf.empty and "published_at" in cdf.columns:
-            cdf['date'] = cdf['published_at'].dt.date
-            time_df = cdf.groupby(['date', 'sentiment_label']).size().reset_index(name='count')
-            fig_time = px.line(
-                time_df, 
-                x="date", 
-                y="count", 
-                color="sentiment_label",
-                color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
-                markers=True,
-                title="Sentiment Trend Over Time"
-            )
-            st.plotly_chart(fig_time, use_container_width=True)
-
-    with tab2:
-        # --- ASPECT-BASED SENTIMENT MATRIX ---
-        if not cdf.empty and "topic_name" in cdf.columns:
-            # Filter out Uncategorized for a cleaner chart
-            topic_cdf = cdf[cdf['topic_name'] != "Uncategorized"]
-            if not topic_cdf.empty:
-                fig_absa = px.histogram(
-                    topic_cdf, 
-                    x="topic_name", 
+        with tab1:
+            # --- CHARTS ROW 2 (Time Series) ---
+            if not cdf.empty and "published_at" in cdf.columns:
+                cdf['date'] = cdf['published_at'].dt.date
+                time_df = cdf.groupby(['date', 'sentiment_label']).size().reset_index(name='count')
+                fig_time = px.line(
+                    time_df, 
+                    x="date", 
+                    y="count", 
                     color="sentiment_label",
-                    barmode="stack",
-                    histnorm="percent",
                     color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
-                    title="Sentiment Breakdown by Topic (100% Stacked)",
-                    labels={"topic_name": "Topic", "sentiment_label": "Sentiment"}
+                    markers=True,
+                    title="Sentiment Trend Over Time"
                 )
-                fig_absa.update_layout(yaxis_title="Percentage (%)")
-                st.plotly_chart(fig_absa, use_container_width=True)
-            else:
-                st.info("Not enough categorized topics to generate ABSA Matrix.")
+                st.plotly_chart(fig_time, use_container_width=True)
+
+        with tab2:
+            # --- ASPECT-BASED SENTIMENT MATRIX ---
+            if not cdf.empty and "topic_name" in cdf.columns:
+                # Filter out Uncategorized for a cleaner chart
+                topic_cdf = cdf[cdf['topic_name'] != "Uncategorized"]
+                if not topic_cdf.empty:
+                    fig_absa = px.histogram(
+                        topic_cdf, 
+                        x="topic_name", 
+                        color="sentiment_label",
+                        barmode="stack",
+                        histnorm="percent",
+                        color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
+                        title="Sentiment Breakdown by Topic (100% Stacked)",
+                        labels={"topic_name": "Topic", "sentiment_label": "Sentiment"}
+                    )
+                    fig_absa.update_layout(yaxis_title="Percentage (%)")
+                    st.plotly_chart(fig_absa, use_container_width=True)
+                else:
+                    st.info("Not enough categorized topics to generate ABSA Matrix.")
                 
-    with tab3:
-        # --- CONTROVERSY SCATTER PLOT ---
-        if not cdf.empty and "published_at" in cdf.columns and "like_count" in cdf.columns:
-            fig_scatter = px.scatter(
-                cdf,
-                x="published_at",
-                y="like_count",
-                color="sentiment_label",
-                hover_data=["clean_text", "topic_name"],
-                color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
-                title="Comment Velocity & Controversy (Likes vs Time)",
-                labels={"published_at": "Publish Date", "like_count": "Likes"}
-            )
-            fig_scatter.update_traces(marker=dict(size=10, opacity=0.7))
-            st.plotly_chart(fig_scatter, use_container_width=True)
+        with tab3:
+            # --- CONTROVERSY SCATTER PLOT ---
+            if not cdf.empty and "published_at" in cdf.columns and "like_count" in cdf.columns:
+                fig_scatter = px.scatter(
+                    cdf,
+                    x="published_at",
+                    y="like_count",
+                    color="sentiment_label",
+                    hover_data=["clean_text", "topic_name"],
+                    color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
+                    title="Comment Velocity & Controversy (Likes vs Time)",
+                    labels={"published_at": "Publish Date", "like_count": "Likes"}
+                )
+                fig_scatter.update_traces(marker=dict(size=10, opacity=0.7))
+                st.plotly_chart(fig_scatter, use_container_width=True)
 
-    # --- ENTITY RADAR ---
-    st.divider()
-    st.markdown("<h3><span class=\"m-icon\">radar</span> Brand & Entity Radar</h3>", unsafe_allow_html=True)
-    if not cdf.empty and "entities" in cdf.columns:
-        # Flatten entities
-        all_entities = []
-        for index, row in cdf.iterrows():
-            # If it's a list, extend. If it's a string representation of list, eval it.
-            ents = row.get("entities", [])
-            if isinstance(ents, list):
-                for e in ents:
-                    all_entities.append({"Entity": e, "Sentiment": row["sentiment_label"]})
+        # --- ENTITY RADAR ---
+        st.divider()
+        st.markdown("<h3><span class=\"m-icon\">radar</span> Brand & Entity Radar</h3>", unsafe_allow_html=True)
+        if not cdf.empty and "entities" in cdf.columns:
+            # Flatten entities
+            all_entities = []
+            for index, row in cdf.iterrows():
+                # If it's a list, extend. If it's a string representation of list, eval it.
+                ents = row.get("entities", [])
+                if isinstance(ents, list):
+                    for e in ents:
+                        all_entities.append({"Entity": e, "Sentiment": row["sentiment_label"]})
                     
-        if all_entities:
-            ent_df = pd.DataFrame(all_entities)
-            ent_counts = ent_df["Entity"].value_counts().reset_index()
-            ent_counts.columns = ["Entity", "Mentions"]
-            # Get top 15 entities
-            top_ents = ent_counts.head(15)["Entity"].tolist()
+            if all_entities:
+                ent_df = pd.DataFrame(all_entities)
+                ent_counts = ent_df["Entity"].value_counts().reset_index()
+                ent_counts.columns = ["Entity", "Mentions"]
+                # Get top 15 entities
+                top_ents = ent_counts.head(15)["Entity"].tolist()
             
-            top_ent_df = ent_df[ent_df["Entity"].isin(top_ents)]
+                top_ent_df = ent_df[ent_df["Entity"].isin(top_ents)]
             
-            fig_ents = px.histogram(
-                top_ent_df,
-                y="Entity",
-                color="Sentiment",
-                barmode="stack",
-                orientation="h",
-                color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
-                title="Top Mentioned Brands/Entities & Their Sentiment",
-            ).update_layout(yaxis={'categoryorder':'total ascending'})
+                fig_ents = px.histogram(
+                    top_ent_df,
+                    y="Entity",
+                    color="Sentiment",
+                    barmode="stack",
+                    orientation="h",
+                    color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
+                    title="Top Mentioned Brands/Entities & Their Sentiment",
+                ).update_layout(yaxis={'categoryorder':'total ascending'})
             
-            st.plotly_chart(fig_ents, use_container_width=True)
-        else:
-            st.info("No notable brands or entities detected in this comment section.")
+                st.plotly_chart(fig_ents, use_container_width=True)
+            else:
+                st.info("No notable brands or entities detected in this comment section.")
 
-    # --- ACTION ITEMS ---
-    st.divider()
+        # --- ACTION ITEMS ---
+        st.divider()
     st.markdown("<h3><span class=\"m-icon\">fact_check</span> Creator Action Items</h3>", unsafe_allow_html=True)
     st.markdown("We've automatically routed comments that require your attention (Questions & Feedback) so you don't have to read through the noise.")
     
