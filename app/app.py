@@ -7,13 +7,78 @@ import streamlit as st
 # Configuration
 API_URL = "http://localhost:8000/analyze"
 
+
 st.set_page_config(
     page_title="TubeSense Analytics",
-    page_icon="🎥",
+    page_icon="youtube_searched_for",
     layout="wide"
 )
 
-st.title("🎥 TubeSense: YouTube Sentiment & Topic Analytics")
+# Inject Custom CSS, Google Fonts, and Material Icons
+st.markdown('''
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+
+/* Global Font */
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+/* Premium Metric Cards */
+div[data-testid="metric-container"] {
+    background: linear-gradient(145deg, #1e1e24 0%, #15151a 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #2a2a35;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    transition: transform 0.2s ease;
+}
+div[data-testid="metric-container"]:hover {
+    transform: translateY(-2px);
+    border-color: #4a4a65;
+}
+
+/* Label & Value colors */
+div[data-testid="stMetricLabel"] {
+    font-weight: 600 !important;
+    color: #9ba1a6 !important;
+}
+div[data-testid="stMetricValue"] {
+    font-weight: 700 !important;
+    color: #ffffff !important;
+}
+
+/* Helper class for Material Icons */
+.m-icon {
+    font-family: 'Material Icons Round';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    vertical-align: middle;
+    margin-right: 8px;
+    color: #ff4b4b;
+}
+
+/* Stylish Headers */
+h1, h2, h3 {
+    font-weight: 700 !important;
+    letter-spacing: -0.5px !important;
+}
+</style>
+''', unsafe_allow_html=True)
+
+
+st.markdown("<h1><span class=\"m-icon\">troubleshoot</span> TubeSense Analytics</h1>", unsafe_allow_html=True)
 st.markdown("Analyze audience sentiment and discover latent topics in YouTube comments instantly using pre-trained NLP models.")
 
 def extract_video_id(url: str) -> str:
@@ -84,7 +149,7 @@ else:
     st.divider()
     # --- EXECUTIVE SUMMARY ---
     st.divider()
-    st.subheader("💡 Executive Summary")
+    st.markdown("<h3><span class=\"m-icon\">lightbulb</span> Executive Summary</h3>", unsafe_allow_html=True)
     
     comments = data.get("enriched_comments", [])
     cdf = pd.DataFrame(comments)
@@ -168,7 +233,7 @@ else:
             
 
     st.divider()
-    st.subheader("📊 Advanced Analytics")
+    st.markdown("<h3><span class=\"m-icon\">analytics</span> Advanced Analytics</h3>", unsafe_allow_html=True)
     tab1, tab2, tab3 = st.tabs(["Time Series", "Aspect-Based Sentiment", "Controversy & Engagement"])
     
     with tab1:
@@ -226,7 +291,7 @@ else:
 
     # --- ENTITY RADAR ---
     st.divider()
-    st.subheader("🏷️ Brand & Entity Radar")
+    st.markdown("<h3><span class=\"m-icon\">radar</span> Brand & Entity Radar</h3>", unsafe_allow_html=True)
     if not cdf.empty and "entities" in cdf.columns:
         # Flatten entities
         all_entities = []
@@ -262,7 +327,7 @@ else:
 
     # --- ACTION ITEMS ---
     st.divider()
-    st.subheader("🚀 Creator Action Items")
+    st.markdown("<h3><span class=\"m-icon\">fact_check</span> Creator Action Items</h3>", unsafe_allow_html=True)
     st.markdown("We've automatically routed comments that require your attention (Questions & Feedback) so you don't have to read through the noise.")
     
     if not cdf.empty and "intent" in cdf.columns:
@@ -284,7 +349,7 @@ else:
 
     # --- INTERACTIVE DATA EXPLORER ---
     st.divider()
-    st.subheader("Data Explorer (Cross-Filtering)")
+    st.markdown("<h3><span class=\"m-icon\">manage_search</span> Data Explorer (Cross-Filtering)</h3>", unsafe_allow_html=True)
     
     if not cdf.empty:
         # Filters
