@@ -44,7 +44,8 @@ def run_preprocessing(comments: list[RawComment]) -> list[CleanedComment]:
                 comment_id=row['comment_id'],
                 clean_text=row['clean_text'],
                 is_valid_for_topic_modeling=row['is_valid_for_topic_modeling'],
-                published_at=row['published_at']
+                published_at=row['published_at'],
+                like_count=row['like_count']
             )
         )
         

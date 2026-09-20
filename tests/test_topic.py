@@ -10,7 +10,7 @@ from src.core.schemas import CleanedComment
 def test_run_topic_modeling_too_few_comments():
     # Less than 15 comments should fallback to Uncategorized
     comments = [
-        CleanedComment(comment_id=str(i), clean_text=f"Comment {i}", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc))
+        CleanedComment(comment_id=str(i), clean_text=f"Comment {i}", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc), like_count=1)
         for i in range(5)
     ]
     
@@ -54,12 +54,12 @@ def test_run_topic_modeling_success(mock_st, mock_bertopic_cls):
     
     # Create 15 valid comments and 2 invalid comments
     comments = [
-        CleanedComment(comment_id=f"v{i}", clean_text=f"Valid {i}", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc))
+        CleanedComment(comment_id=f"v{i}", clean_text=f"Valid {i}", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc), like_count=1)
         for i in range(15)
     ]
     comments.extend([
-        CleanedComment(comment_id="inv1", clean_text="No", is_valid_for_topic_modeling=False, published_at=datetime.now(timezone.utc)),
-        CleanedComment(comment_id="inv2", clean_text="Hi", is_valid_for_topic_modeling=False, published_at=datetime.now(timezone.utc))
+        CleanedComment(comment_id="inv1", clean_text="No", is_valid_for_topic_modeling=False, published_at=datetime.now(timezone.utc), like_count=1),
+        CleanedComment(comment_id="inv2", clean_text="Hi", is_valid_for_topic_modeling=False, published_at=datetime.now(timezone.utc), like_count=1)
     ])
     
     results = run_topic_modeling(comments)

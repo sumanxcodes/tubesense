@@ -82,10 +82,18 @@ else:
         st.write(f"**Views:** {metadata.get('view_count', 0):,}")
         
     st.divider()
+    # --- EXECUTIVE SUMMARY ---
+    st.divider()
+    st.subheader("💡 Executive Summary")
     
+    comments = data.get("enriched_comments", [])
+    cdf = pd.DataFrame(comments)
+    if not cdf.empty and "published_at" in cdf.columns:
+        cdf['published_at'] = pd.to_datetime(cdf['published_at'])
+        
     # Calculate KPIs
-    sentiment_dict = data.get("sentiment_distribution", {})
     total = data.get("total_analyzed", 0)
+    sentiment_dict = data.get("sentiment_distribution", {})
     pos_count = sentiment_dict.get("Positive", 0)
     pos_ratio = (pos_count / total * 100) if total > 0 else 0
     
@@ -96,25 +104,43 @@ else:
         filtered_topics = {k: v for k, v in topic_dict.items() if k != "Uncategorized"}
         if filtered_topics:
             top_topic = max(filtered_topics, key=filtered_topics.get)
+            
+    # Calculate Like-Weighted Sentiment
+    if not cdf.empty and "like_count" in cdf.columns:
+        total_likes = cdf['like_count'].sum()
+        if total_likes > 0:
+            pos_likes = cdf[cdf['sentiment_label'] == 'Positive']['like_count'].sum()
+            like_weighted_pos_ratio = (pos_likes / total_likes) * 100
+        else:
+            like_weighted_pos_ratio = pos_ratio
+    else:
+        like_weighted_pos_ratio = pos_ratio
+
+    # Generate heuristic summary
+    overall_vibe = "positive" if pos_ratio > 50 else ("negative" if sentiment_dict.get("Negative", 0) > pos_count else "mixed")
+    weighted_vibe = "higher" if like_weighted_pos_ratio > pos_ratio else "lower"
     
-    # --- KPI METRICS ---
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Total Comments Analyzed", f"{total:,}")
-    m2.metric("Positive Sentiment", f"{pos_ratio:.1f}%")
-    m3.metric("Dominant Topic", top_topic)
+    st.info(f"The overall sentiment of this video is **{overall_vibe}**, with **{pos_ratio:.1f}%** of comments being positive. "
+            f"The most discussed topic among the audience is **'{top_topic}'**. "
+            f"Interestingly, when weighting by comment likes, the positive sentiment is **{weighted_vibe}** at **{like_weighted_pos_ratio:.1f}%**, "
+            f"indicating that the 'loudest' opinions {'lean positive' if weighted_vibe == 'higher' else 'lean negative'}.")
     
     st.divider()
     
-    comments = data.get("enriched_comments", [])
-    cdf = pd.DataFrame(comments)
-    if not cdf.empty and "published_at" in cdf.columns:
-        cdf['published_at'] = pd.to_datetime(cdf['published_at'])
+    # --- KPI METRICS ---
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Comments Analyzed", f"{total:,}")
+    m2.metric("Raw Positive Sentiment", f"{pos_ratio:.1f}%")
+    m3.metric("Like-Weighted Positive", f"{like_weighted_pos_ratio:.1f}%")
+    m4.metric("Dominant Topic", top_topic)
+    
+    st.divider()
     
     # --- CHARTS ROW 1 ---
     c1, c2 = st.columns(2)
     
     with c1:
-        st.subheader("Sentiment Distribution")
+        st.subheader("Sentiment Distribution (Raw)")
         if sentiment_dict:
             sdf = pd.DataFrame(list(sentiment_dict.items()), columns=["Sentiment", "Count"])
             fig_sent = px.pie(
@@ -174,7 +200,20 @@ else:
         if top_filter:
             filtered_df = filtered_df[filtered_df['topic_name'].isin(top_filter)]
             
+        # Add CSV Download Button
+        csv = filtered_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Data as CSV",
+            data=csv,
+            file_name=f"tubesense_export_{data.get('video_id', 'video')}.csv",
+            mime="text/csv",
+        )
+        
         # Display dataframe
-        display_df = filtered_df[["published_at", "sentiment_label", "topic_name", "clean_text", "comment_id"]]
-        display_df.columns = ["Date", "Sentiment", "Assigned Topic", "Clean Text", "Comment ID"]
+        display_df = filtered_df[["published_at", "sentiment_label", "sentiment_confidence", "topic_name", "like_count", "clean_text"]]
+        
+        # Format confidence as percentage string for display
+        display_df['sentiment_confidence'] = display_df['sentiment_confidence'].apply(lambda x: f"{x*100:.1f}%" if pd.notnull(x) else "N/A")
+        
+        display_df.columns = ["Date", "Sentiment", "AI Confidence", "Assigned Topic", "Likes", "Clean Text"]
         st.dataframe(display_df, use_container_width=True, height=400)

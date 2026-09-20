@@ -26,7 +26,7 @@ def test_analyze_video_success(mock_metadata, mock_ingestion, mock_preprocessing
         RawComment(comment_id="1", author="A", text_display="Great", like_count=1, published_at=datetime.now(timezone.utc))
     ]
     mock_preprocessing.return_value = [
-        CleanedComment(comment_id="1", clean_text="Great", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc))
+        CleanedComment(comment_id="1", clean_text="Great", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc), like_count=1)
     ]
     mock_sentiment.return_value = [
         SentimentOutput(comment_id="1", sentiment_label="Positive", confidence_score=0.9)

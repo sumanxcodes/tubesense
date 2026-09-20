@@ -15,9 +15,9 @@ def test_run_sentiment_analysis(mock_pipeline):
     ]
     
     comments = [
-        CleanedComment(comment_id="1", clean_text="I love this video!", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc)),
-        CleanedComment(comment_id="2", clean_text="This is terrible.", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc)),
-        CleanedComment(comment_id="3", clean_text="It is okay.", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc))
+        CleanedComment(comment_id="1", clean_text="I love this video!", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc), like_count=1),
+        CleanedComment(comment_id="2", clean_text="This is terrible.", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc), like_count=1),
+        CleanedComment(comment_id="3", clean_text="It is okay.", is_valid_for_topic_modeling=True, published_at=datetime.now(timezone.utc), like_count=1)
     ]
     
     results = run_sentiment_analysis(comments)
@@ -36,6 +36,6 @@ def test_run_sentiment_analysis_empty():
     assert run_sentiment_analysis([]) == []
     
     comments = [
-        CleanedComment(comment_id="1", clean_text="   ", is_valid_for_topic_modeling=False, published_at=datetime.now(timezone.utc))
+        CleanedComment(comment_id="1", clean_text="   ", is_valid_for_topic_modeling=False, published_at=datetime.now(timezone.utc), like_count=1)
     ]
     assert run_sentiment_analysis(comments) == []

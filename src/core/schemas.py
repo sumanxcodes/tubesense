@@ -21,6 +21,7 @@ class CleanedComment(BaseModel):
     clean_text: str 
     is_valid_for_topic_modeling: bool 
     published_at: datetime
+    like_count: int
 
 class SentimentOutput(BaseModel):
     comment_id: str
@@ -38,6 +39,8 @@ class EnrichedComment(BaseModel):
     sentiment_label: str
     topic_name: str
     published_at: datetime
+    like_count: int
+    sentiment_confidence: float
 
 class VideoMetadata(BaseModel):
     title: str

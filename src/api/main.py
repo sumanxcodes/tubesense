@@ -45,7 +45,7 @@ async def analyze_video(request: VideoRequest):
         
         # Join data arrays on comment_id
         # We use a dictionary for O(1) lookups
-        sentiment_map = {s.comment_id: s.sentiment_label for s in sentiment_outputs}
+        sentiment_map = {s.comment_id: (s.sentiment_label, s.confidence_score) for s in sentiment_outputs}
         topic_map = {t.comment_id: t.topic_name for t in topic_outputs}
         
         enriched_comments = []
@@ -57,7 +57,7 @@ async def analyze_video(request: VideoRequest):
             if not comment.clean_text.strip():
                 continue
                 
-            s_label = sentiment_map.get(comment.comment_id, "Neutral")
+            s_label, s_conf = sentiment_map.get(comment.comment_id, ("Neutral", 0.0))
             t_name = topic_map.get(comment.comment_id, "Uncategorized")
             
             enriched = EnrichedComment(
@@ -65,7 +65,9 @@ async def analyze_video(request: VideoRequest):
                 clean_text=comment.clean_text,
                 sentiment_label=s_label,
                 topic_name=t_name,
-                published_at=comment.published_at
+                published_at=comment.published_at,
+                like_count=comment.like_count,
+                sentiment_confidence=s_conf
             )
             enriched_comments.append(enriched)
             
