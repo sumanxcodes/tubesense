@@ -110,24 +110,9 @@ def extract_video_id(url: str) -> str:
     return match.group(1) if match else None
 
 
-import streamlit.components.v1 as components
 def render_empty_state():
     st.info("👈 Enter a YouTube URL in the sidebar to begin analysis!")
-    # Render Lottie Animation from CDN
-    lottie_html = '''
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <div style="display: flex; justify-content: center; align-items: center; height: 400px; width: 100%;">
-        <lottie-player 
-            src="https://lottie.host/8040cc1e-0a56-4cce-9a3b-2f3b9be2c48e/Z7u0rF4nDe.json" 
-            background="transparent" 
-            speed="1" 
-            style="width: 400px; height: 400px;" 
-            loop 
-            autoplay>
-        </lottie-player>
-    </div>
-    '''
-    components.html(lottie_html, height=450)
+    st.image("https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", use_container_width=True, caption="Analyze your audience.")
 
 
 # Initialize session state for data persistence
