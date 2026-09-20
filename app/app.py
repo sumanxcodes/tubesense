@@ -1,4 +1,5 @@
 import re
+
 import pandas as pd
 import plotly.express as px
 import requests
@@ -305,7 +306,7 @@ else:
                 )
                 
                 # Make the lines slightly thicker for a premium feel
-                fig_time.update_traces(line=dict(width=3))
+                fig_time.update_traces(line={"width": 3})
                 
                 st.plotly_chart(fig_time, use_container_width=True)
 
@@ -343,7 +344,7 @@ else:
                     title="Comment Velocity & Controversy (Likes vs Time)",
                     labels={"published_at": "Publish Date", "like_count": "Likes"}
                 )
-                fig_scatter.update_traces(marker=dict(size=10, opacity=0.7))
+                fig_scatter.update_traces(marker={"size": 10, "opacity": 0.7})
                 st.plotly_chart(fig_scatter, use_container_width=True)
 
         # --- ENTITY RADAR ---

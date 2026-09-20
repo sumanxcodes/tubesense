@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, timezone
-from typing import Tuple, Optional
 
 from dotenv import load_dotenv
 from googleapiclient.discovery import build

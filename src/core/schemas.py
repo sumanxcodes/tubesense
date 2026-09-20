@@ -1,4 +1,3 @@
-from typing import Dict, List, Any
 from datetime import datetime
 from typing import Any
 
@@ -42,7 +41,7 @@ class EnrichedComment(BaseModel):
     like_count: int
     sentiment_confidence: float
     intent: str
-    entities: List[str]
+    entities: list[str]
 
 class VideoMetadata(BaseModel):
     title: str
@@ -54,6 +53,6 @@ class FinalResponse(BaseModel):
     video_id: str
     metadata: VideoMetadata
     total_analyzed: int
-    sentiment_distribution: Dict[str, Any]
-    topic_clusters: Dict[str, Any]
-    enriched_comments: List[EnrichedComment]
+    sentiment_distribution: dict[str, Any]
+    topic_clusters: dict[str, Any]
+    enriched_comments: list[EnrichedComment]

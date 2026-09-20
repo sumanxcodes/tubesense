@@ -1,7 +1,7 @@
-from sklearn.feature_extraction.text import CountVectorizer
-from umap import UMAP
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import CountVectorizer
+from umap import UMAP
 
 from src.core.schemas import CleanedComment, TopicOutput
 

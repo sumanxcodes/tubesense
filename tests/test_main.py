@@ -4,7 +4,13 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from src.api.main import app
-from src.core.schemas import CleanedComment, RawComment, SentimentOutput, TopicOutput, VideoMetadata
+from src.core.schemas import (
+    CleanedComment,
+    RawComment,
+    SentimentOutput,
+    TopicOutput,
+    VideoMetadata,
+)
 
 client = TestClient(app)
 

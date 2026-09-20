@@ -1,4 +1,3 @@
-import re
 with open("app/app.py", "r") as f:
     app_code = f.read()
 
