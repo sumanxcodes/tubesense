@@ -37,13 +37,11 @@ async def analyze_video(request: VideoRequest):
             raw_comments
         )
 
-        # Agent 4 & 5: Parallel Execution
-        # We run Sentiment and Topic Modeling concurrently
-        sentiment_task = asyncio.to_thread(run_sentiment_analysis, cleaned_comments)
-        topic_task = asyncio.to_thread(run_topic_modeling, cleaned_comments)
-        
-        # Wait for both NLP models to finish
-        sentiment_outputs, topic_outputs = await asyncio.gather(sentiment_task, topic_task)
+        # Agent 4 & 5: Sequential Execution
+        # Running PyTorch and BERTopic in parallel threads causes segfaults/crashes on macOS 
+        # due to underlying C/C++ multithreading conflicts.
+        sentiment_outputs = run_sentiment_analysis(cleaned_comments)
+        topic_outputs = run_topic_modeling(cleaned_comments)
         
         # Join data arrays on comment_id
         # We use a dictionary for O(1) lookups
