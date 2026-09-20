@@ -45,8 +45,14 @@ def run_topic_modeling(comments: list[CleanedComment]) -> list[TopicOutput]:
     # 2. Initialize Model
     # all-MiniLM-L6-v2 is specifically requested in the PRD for speed & performance
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+    
+    # Use CountVectorizer to remove common English stop words ("the", "and", "your")
+    from sklearn.feature_extraction.text import CountVectorizer
+    vectorizer_model = CountVectorizer(stop_words="english")
+    
     topic_model = BERTopic(
         embedding_model=embedding_model,
+        vectorizer_model=vectorizer_model,
         # We can tune min_topic_size depending on max_comments, but default is usually fine
         min_topic_size=max(5, len(texts) // 50) 
     )
