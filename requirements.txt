@@ -23,3 +23,5 @@ ruff
 bandit
 python-dotenv
 httpx
+plotly
+requests
