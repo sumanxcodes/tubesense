@@ -284,17 +284,29 @@ else:
         with tab1:
             # --- CHARTS ROW 2 (Time Series) ---
             if not cdf.empty and "published_at" in cdf.columns:
-                cdf['date'] = cdf['published_at'].dt.date
-                time_df = cdf.groupby(['date', 'sentiment_label']).size().reset_index(name='count')
+                # Convert to datetime if not already
+                cdf['published_at'] = pd.to_datetime(cdf['published_at'])
+                
+                # Resample by Week to smooth out daily noise
+                time_df = cdf.groupby([pd.Grouper(key='published_at', freq='W'), 'sentiment_label']).size().reset_index(name='count')
+                
+                # Rename for cleaner tooltip
+                time_df.rename(columns={'published_at': 'Week'}, inplace=True)
+                
                 fig_time = px.line(
                     time_df, 
-                    x="date", 
+                    x="Week", 
                     y="count", 
                     color="sentiment_label",
                     color_discrete_map={"Positive": "#2ca02c", "Negative": "#d62728", "Neutral": "#7f7f7f"},
-                    markers=True,
-                    title="Sentiment Trend Over Time"
+                    markers=False,
+                    line_shape="spline", # Smooth curves
+                    title="Sentiment Trend Over Time (Weekly Aggregation)"
                 )
+                
+                # Make the lines slightly thicker for a premium feel
+                fig_time.update_traces(line=dict(width=3))
+                
                 st.plotly_chart(fig_time, use_container_width=True)
 
         with tab2:
