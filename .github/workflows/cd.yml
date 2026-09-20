@@ -1,0 +1,76 @@
+name: CD Pipeline (Delivery)
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  GAR_LOCATION: us-central1-docker.pkg.dev
+  REPOSITORY: tubesense-repo
+  IMAGE_NAME: tubesense-app
+  SERVICE_NAME: tubesense-service
+
+jobs:
+  build-scan-deploy:
+    name: Build, Trivy Scan, and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Container Security Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.IMAGE_NAME }}:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # Fails the build if vulnerabilities are found
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Docker Auth for GAR
+        run: |-
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Tag and Push to Google Artifact Registry
+        run: |-
+          docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.GAR_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.GAR_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.GAR_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          # Need to inject secrets into the container runtime
+          env_vars: |
+            YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
