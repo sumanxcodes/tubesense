@@ -1,0 +1,23 @@
+# API & Backend
+fastapi
+uvicorn
+
+# NLP & Machine Learning
+torch
+transformers
+bertopic
+sentence-transformers
+
+# Data & Integration
+google-api-python-client
+youtube-transcript-api
+pandas
+pydantic
+
+# Frontend
+streamlit
+
+# CI/CD & Testing (Dev)
+pytest
+ruff
+bandit
