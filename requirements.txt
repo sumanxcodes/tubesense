@@ -21,3 +21,4 @@ streamlit
 pytest
 ruff
 bandit
+python-dotenv
