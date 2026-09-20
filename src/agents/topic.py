@@ -1,3 +1,5 @@
+from bertopic import BERTopic
+from sentence_transformers import SentenceTransformer
 
 from src.core.schemas import CleanedComment, TopicOutput
 
@@ -14,12 +16,8 @@ def run_topic_modeling(comments: list[CleanedComment]) -> list[TopicOutput]:
     extracts top representation words to auto-generate topic names.
     Outliers and invalid comments are assigned to 'Uncategorized'.
     """
-    if not comments:
-        return []
 
-    # Import locally to save memory if this agent isn't invoked
-    from bertopic import BERTopic
-    from sentence_transformers import SentenceTransformer
+    # 1. Filter valid comments for modeling
     
     # 1. Filter valid comments for modeling
     valid_comments = [c for c in comments if c.is_valid_for_topic_modeling]
