@@ -41,6 +41,8 @@ class EnrichedComment(BaseModel):
     published_at: datetime
     like_count: int
     sentiment_confidence: float
+    intent: str
+    entities: List[str]
 
 class VideoMetadata(BaseModel):
     title: str

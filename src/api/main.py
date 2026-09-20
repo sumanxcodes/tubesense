@@ -60,6 +60,10 @@ async def analyze_video(request: VideoRequest):
             s_label, s_conf = sentiment_map.get(comment.comment_id, ("Neutral", 0.0))
             t_name = topic_map.get(comment.comment_id, "Uncategorized")
             
+            # Enrich with Intent and Entities
+            from src.agents.enrichment import extract_intent_and_entities
+            intent, entities = extract_intent_and_entities(comment.clean_text)
+            
             enriched = EnrichedComment(
                 comment_id=comment.comment_id,
                 clean_text=comment.clean_text,
@@ -67,7 +71,9 @@ async def analyze_video(request: VideoRequest):
                 topic_name=t_name,
                 published_at=comment.published_at,
                 like_count=comment.like_count,
-                sentiment_confidence=s_conf
+                sentiment_confidence=s_conf,
+                intent=intent,
+                entities=entities
             )
             enriched_comments.append(enriched)
             
