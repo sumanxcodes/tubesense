@@ -1,9 +1,9 @@
 import os
-from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
+
+from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from dotenv import load_dotenv
 
 from src.core.schemas import RawComment
 
@@ -17,14 +17,14 @@ def get_youtube_client():
         raise ValueError("YOUTUBE_API_KEY environment variable is missing.")
     return build("youtube", "v3", developerKey=api_key)
 
-def run_ingestion(video_id: str, max_comments: int = 2000) -> List[RawComment]:
+def run_ingestion(video_id: str, max_comments: int = 2000) -> list[RawComment]:
     """
     Fetches comments from a YouTube video up to max_comments.
     Handles pagination and nested replies.
     Acts as a circuit breaker if comments are disabled.
     """
     youtube = get_youtube_client()
-    comments_list: List[RawComment] = []
+    comments_list: list[RawComment] = []
     
     try:
         # Initial request
@@ -47,7 +47,7 @@ def run_ingestion(video_id: str, max_comments: int = 2000) -> List[RawComment]:
                 
                 # Parse datetime string to datetime object
                 published_at_str = top_level_comment.get("publishedAt")
-                published_at = datetime.fromisoformat(published_at_str.replace("Z", "+00:00")) if published_at_str else datetime.now()
+                published_at = datetime.fromisoformat(published_at_str.replace("Z", "+00:00")) if published_at_str else datetime.now(timezone.utc)
                 
                 raw_comment = RawComment(
                     comment_id=item["snippet"]["topLevelComment"]["id"],
@@ -66,7 +66,7 @@ def run_ingestion(video_id: str, max_comments: int = 2000) -> List[RawComment]:
                             
                         reply_snippet = reply_item["snippet"]
                         reply_published_at_str = reply_snippet.get("publishedAt")
-                        reply_published_at = datetime.fromisoformat(reply_published_at_str.replace("Z", "+00:00")) if reply_published_at_str else datetime.now()
+                        reply_published_at = datetime.fromisoformat(reply_published_at_str.replace("Z", "+00:00")) if reply_published_at_str else datetime.now(timezone.utc)
 
                         reply_comment = RawComment(
                             comment_id=reply_item["id"],
@@ -95,6 +95,6 @@ def run_ingestion(video_id: str, max_comments: int = 2000) -> List[RawComment]:
             return []
         else:
             print(f"An HTTP error occurred: {e}")
-            raise e
+            raise
             
     return comments_list

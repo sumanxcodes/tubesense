@@ -1,6 +1,8 @@
-from pydantic import BaseModel
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class VideoRequest(BaseModel):
     video_id: str
@@ -37,6 +39,6 @@ class EnrichedComment(BaseModel):
 class FinalResponse(BaseModel):
     video_id: str
     total_analyzed: int
-    sentiment_distribution: Dict[str, Any]
-    topic_clusters: Dict[str, Any]
-    enriched_comments: List[EnrichedComment]
+    sentiment_distribution: dict[str, Any]
+    topic_clusters: dict[str, Any]
+    enriched_comments: list[EnrichedComment]

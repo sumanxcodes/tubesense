@@ -1,7 +1,8 @@
-import pytest
 from unittest.mock import patch
-from src.core.schemas import CleanedComment
+
 from src.agents.sentiment import run_sentiment_analysis
+from src.core.schemas import CleanedComment
+
 
 @patch("src.agents.sentiment.sentiment_pipeline")
 def test_run_sentiment_analysis(mock_pipeline):

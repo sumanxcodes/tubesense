@@ -1,7 +1,8 @@
-from typing import List
-from transformers import pipeline
-from src.core.schemas import CleanedComment, SentimentOutput
+
 import torch
+from transformers import pipeline
+
+from src.core.schemas import CleanedComment, SentimentOutput
 
 # Load the model specified in the PRD.
 # We initialize it outside the function so it only loads into memory once when the module is imported.
@@ -27,7 +28,7 @@ LABEL_MAPPING = {
     "LABEL_2": "Positive"
 }
 
-def run_sentiment_analysis(comments: List[CleanedComment]) -> List[SentimentOutput]:
+def run_sentiment_analysis(comments: list[CleanedComment]) -> list[SentimentOutput]:
     """
     Processes a batch of clean text through the RoBERTa pipeline.
     Maps tensor logits to human-readable string labels with confidence scores.

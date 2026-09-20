@@ -1,7 +1,8 @@
-import pytest
-from datetime import datetime
+from datetime import datetime, timezone
+
+from src.agents.preprocessing import clean_text_string, run_preprocessing
 from src.core.schemas import RawComment
-from src.agents.preprocessing import run_preprocessing, clean_text_string
+
 
 def test_clean_text_string():
     # Test HTML removal
@@ -18,7 +19,7 @@ def test_run_preprocessing_valid_topic():
             author="User1",
             text_display="This is a perfectly valid long comment.",
             like_count=0,
-            published_at=datetime.now()
+            published_at=datetime.now(timezone.utc)
         )
     ]
     
@@ -34,7 +35,7 @@ def test_run_preprocessing_invalid_topic():
             author="User2",
             text_display="Too short",
             like_count=0,
-            published_at=datetime.now()
+            published_at=datetime.now(timezone.utc)
         )
     ]
     
@@ -50,7 +51,7 @@ def test_run_preprocessing_empty_after_clean():
             author="User3",
             text_display="<br> https://spam.com",
             like_count=0,
-            published_at=datetime.now()
+            published_at=datetime.now(timezone.utc)
         )
     ]
     

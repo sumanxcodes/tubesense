@@ -1,8 +1,10 @@
-import pytest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
-from src.core.schemas import CleanedComment
+
 from src.agents.topic import run_topic_modeling
+from src.core.schemas import CleanedComment
+
 
 def test_run_topic_modeling_too_few_comments():
     # Less than 15 comments should fallback to Uncategorized

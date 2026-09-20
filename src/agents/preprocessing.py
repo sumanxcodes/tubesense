@@ -1,7 +1,9 @@
 import re
+
 import pandas as pd
-from typing import List
-from src.core.schemas import RawComment, CleanedComment
+
+from src.core.schemas import CleanedComment, RawComment
+
 
 def clean_text_string(text: str) -> str:
     """Removes HTML tags and URLs from a string, and strips whitespace."""
@@ -13,7 +15,7 @@ def clean_text_string(text: str) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-def run_preprocessing(comments: List[RawComment]) -> List[CleanedComment]:
+def run_preprocessing(comments: list[RawComment]) -> list[CleanedComment]:
     """
     Cleans raw comments and evaluates them for topic modeling.
     Uses pandas for efficient vectorized text processing if the dataset is large,

@@ -1,12 +1,13 @@
-from typing import List
+
 from src.core.schemas import CleanedComment, TopicOutput
+
 
 # Lazy load BERTopic to prevent slow startup times if only other agents are needed.
 # Since it loads heavy dependencies, it's better instantiated inside the function
 # or loaded at the top if we strictly follow the singleton pattern.
 # For API usage, a global instance is preferred if we reuse it, but BERTopic needs to 
 # fit dynamically on the specific video's comments every time.
-def run_topic_modeling(comments: List[CleanedComment]) -> List[TopicOutput]:
+def run_topic_modeling(comments: list[CleanedComment]) -> list[TopicOutput]:
     """
     Discovers latent themes within the comment section dynamically using BERTopic.
     Converts text into vector embeddings, runs UMAP/HDBSCAN clustering, and 
@@ -24,7 +25,7 @@ def run_topic_modeling(comments: List[CleanedComment]) -> List[TopicOutput]:
     valid_comments = [c for c in comments if c.is_valid_for_topic_modeling]
     invalid_comments = [c for c in comments if not c.is_valid_for_topic_modeling]
     
-    topic_outputs: List[TopicOutput] = []
+    topic_outputs: list[TopicOutput] = []
     
     # Fast path if there are not enough comments to cluster
     # HDBSCAN typically needs at least a few dozen data points. 
@@ -53,7 +54,7 @@ def run_topic_modeling(comments: List[CleanedComment]) -> List[TopicOutput]:
     )
     
     # 3. Fit Model
-    topics, probs = topic_model.fit_transform(texts)
+    topics, _probs = topic_model.fit_transform(texts)
     
     # 4. Generate Topic Names (top 3 words)
     topic_info = topic_model.get_topic_info()

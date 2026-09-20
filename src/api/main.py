@@ -1,12 +1,13 @@
 import asyncio
-from fastapi import FastAPI, HTTPException
 from collections import Counter
 
-from src.core.schemas import VideoRequest, FinalResponse, EnrichedComment
+from fastapi import FastAPI, HTTPException
+
 from src.agents.ingestion import run_ingestion
 from src.agents.preprocessing import run_preprocessing
 from src.agents.sentiment import run_sentiment_analysis
 from src.agents.topic import run_topic_modeling
+from src.core.schemas import EnrichedComment, FinalResponse, VideoRequest
 
 app = FastAPI(
     title="TubeSense API",
@@ -86,6 +87,6 @@ async def analyze_video(request: VideoRequest):
         
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # Catch unexpected errors and return as 500
         raise HTTPException(status_code=500, detail=str(e))

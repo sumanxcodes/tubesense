@@ -1,8 +1,9 @@
-import streamlit as st
-import requests
 import re
+
 import pandas as pd
 import plotly.express as px
+import requests
+import streamlit as st
 
 # Configuration
 API_URL = "http://localhost:8000/analyze"

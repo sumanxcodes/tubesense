@@ -1,9 +1,10 @@
-import pytest
-from fastapi.testclient import TestClient
+from datetime import datetime, timezone
 from unittest.mock import patch
+
+from fastapi.testclient import TestClient
+
 from src.api.main import app
-from src.core.schemas import RawComment, CleanedComment, SentimentOutput, TopicOutput
-from datetime import datetime
+from src.core.schemas import CleanedComment, RawComment, SentimentOutput, TopicOutput
 
 client = TestClient(app)
 
@@ -19,7 +20,7 @@ def test_health_check():
 def test_analyze_video_success(mock_ingestion, mock_preprocessing, mock_sentiment, mock_topic):
     # Mock data
     mock_ingestion.return_value = [
-        RawComment(comment_id="1", author="A", text_display="Great", like_count=1, published_at=datetime.now())
+        RawComment(comment_id="1", author="A", text_display="Great", like_count=1, published_at=datetime.now(timezone.utc))
     ]
     mock_preprocessing.return_value = [
         CleanedComment(comment_id="1", clean_text="Great", is_valid_for_topic_modeling=True)
